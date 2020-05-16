@@ -41,7 +41,11 @@ class QuestionView extends Component {
   }
 
   selectPage(num) {
-    this.setState({page: num}, () => this.getQuestions());
+    if(this.state.currentCategory) {
+      this.setState({page: num}, () => this.getByCategory(parseInt(this.state.currentCategory.id), num));
+    } else {
+      this.setState({page: num}, () => this.getQuestions())
+    }
   }
 
   createPagination(){
@@ -58,9 +62,9 @@ class QuestionView extends Component {
     return pageNumbers;
   }
 
-  getByCategory= (id) => {
+  getByCategory= (id, page=1) => {
     $.ajax({
-      url: `/categories/${id}/questions`, //TODO: update request URL
+      url: `/categories/${id}/questions?page=${page}`, //TODO: update request URL
       type: "GET",
       success: (result) => {
         this.setState({
@@ -78,15 +82,8 @@ class QuestionView extends Component {
 
   submitSearch = (searchTerm) => {
     $.ajax({
-      url: `/questions`, //TODO: update request URL
-      type: "POST",
-      dataType: 'json',
-      contentType: 'application/json',
-      data: JSON.stringify({searchTerm: searchTerm}),
-      xhrFields: {
-        withCredentials: true
-      },
-      crossDomain: true,
+      url: `/questions?search=${searchTerm}`, //TODO: update request URL
+      type: "GET",
       success: (result) => {
         this.setState({
           questions: result.questions,
