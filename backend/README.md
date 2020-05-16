@@ -66,29 +66,285 @@ One note before you delve into your tasks: for each endpoint you are expected to
 8. Create a POST endpoint to get questions to play the quiz. This endpoint should take category and previous question parameters and return a random questions within the given category, if provided, and that is not one of the previous questions. 
 9. Create error handlers for all expected errors including 400, 404, 422 and 500. 
 
-REVIEW_COMMENT
+# API Documentation
+
+## Getting Started
+- Base URL: At present this app can only be run locally and is not hosted as a base URL. The backend app is hosted at the default, http://127.0.0.1:5000/, which is set as a proxy in the frontend configuration.
+- Authentication: This version of the application does not require authentication or API keys.
+
+## Error Handling
+
+Errors are returned as JSON objects in the following format:
 ```
-This README is missing documentation of your endpoints. Below is an example for your endpoint to get all categories. Please use it as a reference for creating your documentation and resubmit your code. 
+{
+  "success": false,
+  "error": 405,
+  "message": "Method not allowed"
+}
+```
+The API will return these error types when requests fail:
 
-Endpoints
-GET '/categories'
-GET ...
-POST ...
-DELETE ...
+- 405: Method not allowed
+- 400: Bad request
+- 404: Not found
+- 422: Unprocessable
+- 500: Server error
 
-GET '/categories'
-- Fetches a dictionary of categories in which the keys are the ids and the value is the corresponding string of the category
-- Request Arguments: None
-- Returns: An object with a single key, categories, that contains a object of id: category_string key:value pairs. 
-{'1' : "Science",
-'2' : "Art",
-'3' : "Geography",
-'4' : "History",
-'5' : "Entertainment",
-'6' : "Sports"}
+## Endpoints library
 
+### `GET /categories`
+
+Returns a dictionnary of all categories in which the keys are the ids and the value is the corresponding name of the category as a string.
+
+Request example:
+```
+curl http://127.0.0.1:5000/categories
 ```
 
+Response sample:
+```
+{
+  "categories": {
+    "1": "Science",
+    "2": "Art",
+    "3": "Geography",
+    "4": "History",
+    "5": "Entertainment",
+    "6": "Sports"
+  },
+  "success": true
+}
+```
+
+### `GET /questions`
+
+- Returns a list of question objects, success value, and total number of questions, a dictionnary of all categories available and a current_category set to null as this endpoint isn't category specific.
+
+  Request example:
+  ```
+  curl http://127.0.0.1:5000/questions
+  ```
+
+- Results are paginated in groups of 10. Include a request argument to choose page number, starting from 1. This is optionnal and will default to page 1 if ommited.
+
+  Request example:
+  ```
+  curl http://127.0.0.1:5000/questions?page=2
+  ```
+
+- Results can be filtered by a search term. Include a request argument to specify the search term.
+
+  Request example:
+  ```
+  curl http://127.0.0.1:5000/questions?search=where
+  ```
+
+Response sample:
+```
+{
+  "categories": {
+    "1": "Science",
+    "2": "Art",
+    "3": "Geography",
+    "4": "History",
+    "5": "Entertainment",
+    "6": "Sports"
+  },
+  "current_category": null,
+  "questions": [
+    {
+      "answer": "Maya Angelou",
+      "category": 4,
+      "difficulty": 2,
+      "id": 5,
+      "question": "Whose autobiography is entitled 'I Know Why the Caged Bird Sings'?"
+    },
+    {
+      "answer": "Muhammad Ali",
+      "category": 4,
+      "difficulty": 1,
+      "id": 9,
+      "question": "What boxer's original name is Cassius Clay?"
+    },
+    {
+      "answer": "Apollo 13",
+      "category": 5,
+      "difficulty": 4,
+      "id": 2,
+      "question": "What movie earned Tom Hanks his third straight Oscar nomination, in 1996?"
+    },
+    {
+      "answer": "Tom Cruise",
+      "category": 5,
+      "difficulty": 4,
+      "id": 4,
+      "question": "What actor did author Anne Rice first denounce, then praise in the role of her beloved Lestat?"
+    },
+    {
+      "answer": "Brazil",
+      "category": 6,
+      "difficulty": 3,
+      "id": 10,
+      "question": "Which is the only team to play in every soccer World Cup tournament?"
+    },
+    {
+      "answer": "George Washington Carver",
+      "category": 4,
+      "difficulty": 2,
+      "id": 12,
+      "question": "Who invented Peanut Butter?"
+    },
+    {
+      "answer": "Lake Victoria",
+      "category": 3,
+      "difficulty": 2,
+      "id": 13,
+      "question": "What is the largest lake in Africa?"
+    },
+    {
+      "answer": "The Palace of Versailles",
+      "category": 3,
+      "difficulty": 3,
+      "id": 14,
+      "question": "In which royal palace would you find the Hall of Mirrors?"
+    },
+    {
+      "answer": "Agra",
+      "category": 3,
+      "difficulty": 2,
+      "id": 15,
+      "question": "The Taj Mahal is located in which Indian city?"
+    },
+    {
+      "answer": "Escher",
+      "category": 2,
+      "difficulty": 1,
+      "id": 16,
+      "question": "Which Dutch graphic artist\u2013initials M C was a creator of optical illusions?"
+    }
+  ],
+  "success": true,
+  "total_questions": 27
+}
+```
+
+### `DELETE /questions/{question_id}`
+Deletes the question of the given ID if it exists. Returns the id of the deleted question and a success value.
+
+Request example:
+
+```
+curl -X DELETE http://127.0.0.1:5000/questions/12
+```
+
+Response sample:
+```
+{
+  "id": "12",
+  "success": true
+}
+```
+
+### `POST /questions`
+Creates a new question using the submitted question, answer, category and difficulty. Returns the id of the created book, success value.
+
+Request example:
+
+```
+curl -X POST http://127.0.0.1:5000/questions -H "Content-Type: application/json" -d '{"question":"What is the name of this repository?", "answer":"Trivia API", "difficulty":"1", "category":"2"}'
+```
+
+Response sample:
+```
+{
+  "id": 37,
+  "success": true
+}
+```
+
+### `GET /category/{category_id}/questions`
+- Returns a list of question objects for the specified category, a success value, the total number of questions in that cateogry and the current category.
+
+  Request example:
+  ```
+  curl http://127.0.0.1:5000/categories/4/questions
+  ```
+
+- Results are paginated in groups of 10. Include a request argument to choose page number, starting from 1. This is optionnal and will default to page 1 if ommited.
+
+  Request example:
+  ```
+  curl http://127.0.0.1:5000/categories/4/questions?page=2
+  ```
+
+Response sample:
+```
+{
+  "current_category": {
+    "id": 4,
+    "type": "History"
+  },
+  "questions": [
+    {
+      "answer": "Maya Angelou",
+      "category": 4,
+      "difficulty": 2,
+      "id": 5,
+      "question": "Whose autobiography is entitled 'I Know Why the Caged Bird Sings'?"
+    },
+    {
+      "answer": "Muhammad Ali",
+      "category": 4,
+      "difficulty": 1,
+      "id": 9,
+      "question": "What boxer's original name is Cassius Clay?"
+    },
+    {
+      "answer": "Scarab",
+      "category": 4,
+      "difficulty": 4,
+      "id": 23,
+      "question": "Which dung beetle was worshipped by the ancient Egyptians?"
+    }
+  ],
+  "success": true,
+  "total_questions": 3
+}
+```
+
+### `POST /quizzes`
+Fetch a random question from the specified category.
+
+- To select questions from all categories, you can either omit the quiz_category key value pair in the body or use the quiz category "0" in the body.
+
+- Specifiy a list of question object ids to exclude them from being fetch again. This is optional.
+
+Request example:
+  ```
+  curl -X POST http://127.0.0.1:5000/quizzes -H "Content-Type: application/json" -d '{"quiz_category":"1", "previous_questions": [1, 2, 3]}'
+  ```
+
+Response sample when a question is available:
+```
+{
+  "question": {
+    "answer": "Blood",
+    "category": 1,
+    "difficulty": 4,
+    "id": 22,
+    "question": "Hematology is a branch of medicine involving the study of what?"
+  },
+  "success": true
+}
+```
+
+Response sample when no more questions are available:
+```
+{
+  "question": false,
+  "success": true
+}
+```
 
 ## Testing
 To run the tests, run
